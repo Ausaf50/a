@@ -5,42 +5,41 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" type="text/css" href="styles.css">
-	
+	<link rel="stylesheet" type="text/css" href="bootstrap.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	
-	
 	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
-	
-	
-	
 </head>
 <body>
-	<div  id="vue-app" >
-		<h1>Data Quality Validation with Custom Business Rule</h1>
-		<div>
-			
-				<b>Input File Name</b>
-				<input type="text" name="filename" placeholder=" File Name" v-model="filename"  >
-				<input type="file" name="csvfile" accept=".csv" value="Upload File" id="fileupload">
-				<button onclick="uploadFileToS3()">Upload file to s3</button>
-			
-		</div>
-		<div>
-			<h2> Input Condition </h2>
-			<p>Build your data validating custom logic here:</p>
-			<table Id="t1">
-				
+	<div  id="vue-app" class="container">
+		<h1>Data Quality Validation with Custom Business Rule</h1> 
+        <div class="row">
+            <div class="col-sm-4">
+                <input class="form-control" type="text" name="filename" placeholder=" File Name" v-model="filename"  >
+                <p>Input File Name</p>
+            </div>
+            <div class="col-sm-4">
+                <input type="file"  name="csvfile" accept=".csv" value="Upload File" id="fileupload">
+            </div>
+            <div class="col-sm-4">
+                <button class="btn" onclick="uploadFileToS3()">Upload file to s3</button>
+            </div>	
+        </div>	
+		<h2> Input Condition </h2>
+		<p>Build your data validating custom logic here:</p>
+        <div class="row">
+            <table Id="t1" class = "table">	
 				<tr>
 					<th>Attribute Name</th>
 					<th>Operator</th>
 					<th>Data Type</th>
-					<th>Attribute Value</th>
+                    <th>Attribute Value</th>
+                    <th></th>
+                    <th>Treat Next Rule As</th>
 				</tr>
 				
 				<tr  v-for="condition,i in input_conditions"  >			
-					
 					<td>
 						<select v-model="condition.attr_name" >
 						  <option v-for="header in csv_headers" v-bind:value="header">
@@ -76,54 +75,37 @@
 					
 					<td>
 						<input type="text"  placeholder="5000"   v-model="condition.attr_value"  v-if="condition.operator!='between'" >
-						
 						<input type="text"  placeholder="5000"   v-model="condition.starting_attr_value"  v-if="condition.operator=='between'" >
 						<!--AND  -->
 						<input type="text"  placeholder="5000"   v-model="condition.ending_attr_value"  v-if="condition.operator=='between'" >
-						
 					</td>
 					
 					<td>
-						<input type="button" @click="add_condition(1)" value="&oplus;">
-						<input type="button" @click="remove_condition(i, 1)" value="Remove"  v-if="i!=0" >
+						<input class="btn" type="button" @click="add_condition(1)" value="&oplus;">
+						<input class="btn" type="button" @click="remove_condition(i, 1)" value="Remove"  v-if="i!=0" >
 					</td>
 					
 					<td>
-						<table>
-							<tr>
-								<th>
-									Treat next rule as
-								</th>
-							</tr>
 						
-							<tr>
-								<td>
-									<input type="radio"  value="And" v-model="condition.treat_rule_as" >And
-								</td>
-								<td>
-									<input type="radio"  value="Or" v-model="condition.treat_rule_as">Or
-								</td>
-							</tr>
-						
-						</table>
-					</td>
-					
+						<input type="radio"  value="And" v-model="condition.treat_rule_as" >AND
+						<input type="radio"  value="Or" v-model="condition.treat_rule_as">OR
+					</td>	
 				</tr>
-			</table>
-			
-			
+			</table>	
 		</div>
 		
-		<button @click="display_conditions(1)" >Show Input Conditions</button>
-		<div>
-			<h2> Data for Validation</h2>
-			<p>Mention reference data here:</p>
-			<table Id="t3">
+		
+		<h2> Data for Validation</h2>
+		<p>Mention reference data here:</p>
+        <div class="row">
+        	<table Id="t3" class="table">
 				<tr>
 					<th>Attribute Name</th>
 					<th>Operator</th>
 					<th>Data Type</th>
-					<th>Attribute Value</th>
+                    <th>Attribute Value</th>
+                    <th></th>
+                    <th>Treat Next Rule As</th>
 				</tr>
 			
 				<tr v-for="condition2,j in validation_data">
@@ -163,40 +145,28 @@
 					</td>
 					
 					<td>
-						<input type="button" @click="add_condition(2)" value="&oplus;">
-						<input type="button" @click="remove_condition(j, 2)" value="Remove"  v-if="j!=0" >
+						<input class="btn" type="button" @click="add_condition(2)" value="&oplus;">
+						<input class="btn" type="button" @click="remove_condition(j, 2)" value="Remove"  v-if="j!=0" >
 					</td>
 				
 					<td>
-						<table>
-							<tr>
-								<th>
-									Treat next rule as
-								</th>
-							</tr>
-						
-							<tr>
-								<td>
-									<input type="radio"  value="And" v-model="condition2.treat_rule_as" >And
-								</td>
-								<td>
-									<input type="radio"  value="Or" v-model="condition2.treat_rule_as">Or
-								</td>
-							</tr>
-						
-						</table>
+						<input type="radio"  value="And" v-model="condition2.treat_rule_as" >AND
+						<input type="radio"  value="Or" v-model="condition2.treat_rule_as">OR		
 					</td>
 				</tr>
 			</table>
-			<button @click="display_conditions(2)" >Show Data Validation Rules</button>
-			<button @click="generate_json()" >Generate json</button>
+			
 			
 		</div>
-		<div><h2> Custom DQ Rule: </h2>
-			<form>
-				<textarea rows="7" cols="160" placeholder="If Salary > 5000 and Experience between 12 and 15 Then Designation = &quot Manager &quot"></textarea>
-			<input type="submit" id="i5" align="right">
-			</form>
+		<h2> Custom DQ Rule: </h2>
+        <div class="row">
+            <form>
+                <textarea rows="7" cols="160" placeholder="If Salary > 5000 and Experience between 12 and 15 Then Designation = &quot Manager &quot"></textarea>
+                <input class="btn" type="submit" id="i5" align="right">
+                <button class="btn" @click="display_conditions(1)" >Show Input Conditions</button>
+                <button class="btn" @click="display_conditions(2)" >Show Data Validation Rules</button>
+                <button class="btn" @click="generate_json()" >Generate Json</button>
+		    </form>
 		</div>
 	</div>	
 </body>
@@ -242,50 +212,60 @@
 				generate_json:function(){
 					var obj ={ 
 								"input_file":"",
-								"Rule_Attributes":[
-													{
-														"field_name":"",
-														"field_type":"",
-														"condition":{
-																		"condition_type":"",
-																		"upper_val":"",
-																		"lower_val":""
-																	},
-														"treat_next_rule_as":"null/and/or"
-														}
-													],
-								"Expected Data":[
-													{
-														"field_name":"",
-														"field_type":"",
-														"condition":{
-																		"condition_type":"",
-																		"upper_val":"",
-																		"lower_val":""
-																	},
-														"treat_next_rule_as":"null/and/or"
-													}
-												]
+								"Rule_Attributes":[],
+								"Expected Data":[]
 							}
-					
+					var rule_attr ={
+						"field_name":"",
+						"field_type":"",
+						"condition":{
+										"condition_type":"",
+										"upper_val":"",
+										"lower_val":""
+									},
+						"treat_next_rule_as":"null/and/or"
+					}
+					var exp_data = {
+						"field_name":"",
+						"field_type":"",
+						"condition":{
+										"condition_type":"",
+										"upper_val":"",
+										"lower_val":""
+									},
+						"treat_next_rule_as":"null/and/or"
+					}
 					
 					
 					
 					obj.input_file="abc";
-					//console.log(vm.input_conditions.length);
+					// console.log(vm.input_conditions[0].attr_name);
+					
+					// console.log(vm.input_conditions[1].attr_name);
 					for (var i = 0; i < vm.input_conditions.length; i++) {
-						obj.Rule_Attributes[i].field_name = vm.input_conditions[i].attr_name;
-						obj.Rule_Attributes[i].field_type = vm.input_conditions[i].data_type;
-						obj.Rule_Attributes[i].condition.condition_type = vm.input_conditions[i].operator;
+						var rule_attr ={
+							"field_name":"",
+							"field_type":"",
+							"condition":{
+											"condition_type":"",
+											"upper_val":"",
+											"lower_val":""
+										},
+							"treat_next_rule_as":"null/and/or"
+						}
+						rule_attr.field_name = vm.input_conditions[i].attr_name;
+						rule_attr.field_type = vm.input_conditions[i].data_type;
+						rule_attr.condition.condition_type = vm.input_conditions[i].operator;
 						if(vm.input_conditions[i].operator == "between"){
-							obj.Rule_Attributes[i].condition.upper_val = vm.input_conditions[i].ending_attr_value;
-							obj.Rule_Attributes[i].condition.lower_val = vm.input_conditions[i].starting_attr_value;
+							rule_attr.condition.upper_val = vm.input_conditions[i].ending_attr_value;
+							rule_attr.condition.lower_val = vm.input_conditions[i].starting_attr_value;
 						}
 						else{
-							obj.Rule_Attributes[i].condition.upper_val = vm.input_conditions[i].attr_value;
-							obj.Rule_Attributes[i].condition.lower_val = vm.input_conditions[i].attr_value;
+							rule_attr.condition.upper_val = vm.input_conditions[i].attr_value;
+							rule_attr.condition.lower_val = vm.input_conditions[i].attr_value;
 						}
-						obj.Rule_Attributes[i].treat_next_rule_as = vm.input_conditions[i].treat_rule_as;
+						rule_attr.treat_next_rule_as = vm.input_conditions[i].treat_rule_as;
+						obj.Rule_Attributes.push(rule_attr);
 					}
 					
 					console.log(JSON.stringify(obj));
