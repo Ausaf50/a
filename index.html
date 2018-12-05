@@ -29,9 +29,9 @@
 		<h2> Input Condition </h2>
 		<p>Build your data validating custom logic here:</p>
         <div class="row">
-            <table Id="t1" class = "table">	
+            <table Id="t1" class = "table table-bordered table-hover">	
 				<tr>
-					<th>Attribute Name</th>
+					<th >Attribute Name</th>
 					<th>Operator</th>
 					<th>Data Type</th>
                     <th>Attribute Value</th>
@@ -98,7 +98,7 @@
 		<h2> Data for Validation</h2>
 		<p>Mention reference data here:</p>
         <div class="row">
-        	<table Id="t3" class="table">
+        	<table class="table table-bordered table-hover">
 				<tr>
 					<th>Attribute Name</th>
 					<th>Operator</th>
@@ -172,12 +172,7 @@
 </body>
 </html>
 
-
-
-
-
-	<script>
-	
+<script>	
 		var vm=new Vue({
 			el:'#vue-app',
 			data:{
@@ -213,44 +208,18 @@
 					var obj ={ 
 								"input_file":"",
 								"Rule_Attributes":[],
-								"Expected Data":[]
-							}
-					var rule_attr ={
-						"field_name":"",
-						"field_type":"",
-						"condition":{
-										"condition_type":"",
-										"upper_val":"",
-										"lower_val":""
-									},
-						"treat_next_rule_as":"null/and/or"
-					}
-					var exp_data = {
-						"field_name":"",
-						"field_type":"",
-						"condition":{
-										"condition_type":"",
-										"upper_val":"",
-										"lower_val":""
-									},
-						"treat_next_rule_as":"null/and/or"
-					}
-					
-					
-					
+								"Expected_Data":[]
+							}				
 					obj.input_file="abc";
-					// console.log(vm.input_conditions[0].attr_name);
-					
-					// console.log(vm.input_conditions[1].attr_name);
 					for (var i = 0; i < vm.input_conditions.length; i++) {
 						var rule_attr ={
 							"field_name":"",
 							"field_type":"",
 							"condition":{
-											"condition_type":"",
-											"upper_val":"",
-											"lower_val":""
-										},
+								"condition_type":"",
+								"upper_val":"",
+								"lower_val":""
+							},
 							"treat_next_rule_as":"null/and/or"
 						}
 						rule_attr.field_name = vm.input_conditions[i].attr_name;
@@ -267,7 +236,34 @@
 						rule_attr.treat_next_rule_as = vm.input_conditions[i].treat_rule_as;
 						obj.Rule_Attributes.push(rule_attr);
 					}
-					
+					for (var i = 0; i < vm.validation_data.length; i++) {
+						var exp_data = {
+							"field_name":"",
+							"field_type":"",
+							"condition":{
+								"condition_type":"",
+								"upper_val":"",
+								"lower_val":""
+							},
+							"treat_next_rule_as":"null/and/or"
+						}
+						exp_data.field_name = vm.validation_data[i].attr_name;
+						exp_data.field_type = vm.validation_data[i].data_type;
+						exp_data.condition.condition_type = vm.validation_data[i].operator;
+						if(vm.validation_data[i].operator == "between"){
+							exp_data.condition.upper_val = vm.validation_data[i].ending_attr_value;
+							exp_data.condition.lower_val = vm.validation_data[i].starting_attr_value;
+						}
+						else{
+							exp_data.condition.upper_val = vm.validation_data[i].attr_value;
+							exp_data.condition.lower_val = vm.validation_data[i].attr_value;
+						}
+						exp_data.treat_next_rule_as = vm.validation_data[i].treat_rule_as;
+						obj.Expected_Data.push(exp_data);
+
+						
+					}
+						
 					console.log(JSON.stringify(obj));
 					alert(JSON.stringify(obj));
 					
