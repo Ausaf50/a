@@ -15,28 +15,23 @@
 	<div  id="vue-app" class="container">
 		<h1>Data Quality Validation with Custom Business Rule</h1> 
         <div class="row">
-            <div class="col-sm-4">
-                <input class="form-control" type="text" name="filename" placeholder=" File Name" v-model="filename"  >
-                <p>Input File Name</p>
+            <div class="col-sm-12">
+                <p>Custom Business Rule has been applied to provided data file and following are records which are not matching. Please verify and confirm -</p>
             </div>
-            <div class="col-sm-4">
-                <input type="file"  name="csvfile" accept=".csv" value="Upload File" id="fileupload">
-            </div>
-            <div class="col-sm-4">
-                <button class="btn" onclick="uploadFileToS3()">Upload file to s3</button>
-            </div>	
+           
         </div>	
-		<h2> Input Condition </h2>
-		<p>Build your data validating custom logic here:</p>
+		
         <div class="row">
             <table Id="t1" class = "table table-bordered table-hover">	
 				<tr>
-					<th >Attribute Name</th>
-					<th>Operator</th>
-					<th>Data Type</th>
-                    <th>Attribute Value</th>
-                    <th></th>
-                    <th>Treat Next Rule As</th>
+					<th >Row No.</th>
+					<th>Employee No.</th>
+					<th>Employee Name</th>
+                    <th>Job</th>
+                    <th>Hire Date</th>
+                    <th>Salary</th>
+                    <th>Job</th>
+                    <th>Validate Erraneous Data</th>
 				</tr>
 				
 				<tr  v-for="condition,i in input_conditions"  >			
@@ -81,93 +76,30 @@
 					</td>
 					
 					<td>
-						<input class="btn" type="button" @click="add_condition(1)" value="&oplus;">
-						<input class="btn" type="button" @click="remove_condition(i, 1)" value="Remove"  v-if="i!=0" >
+						c
 					</td>
 					
 					<td>
-						
-						<input type="radio"  value="And" v-model="condition.treat_rule_as" >AND
-						<input type="radio"  value="Or" v-model="condition.treat_rule_as">OR
+						a
+					</td>
+					<td>
+						b
+					</td>
+					<td>
+						<input type="checkbox" v-model="condition.checked" >
 					</td>	
+					
 				</tr>
 			</table>	
 		</div>
 		
-		
-		<h2> Data for Validation</h2>
-		<p>Mention reference data here:</p>
         <div class="row">
-        	<table class="table table-bordered table-hover">
-				<tr>
-					<th>Attribute Name</th>
-					<th>Operator</th>
-					<th>Data Type</th>
-                    <th>Attribute Value</th>
-                    <th></th>
-                    <th>Treat Next Rule As</th>
-				</tr>
-			
-				<tr v-for="condition2,j in validation_data">
-					<td>
-						<input type="text" name="attn1" placeholder="Designation" v-model="condition2.attr_name">
-					</td>
-					
-					<td>
-						<select v-model="condition2.operator"  >
-							<option value="regex match">REGEX Match</option>
-							<option value="equal to">Equal To</option>
-							<option value="not equal to">Not Equal To</option>
-							<option value="less than">Less than</option>
-							<option value="greater Than">Greater Than</option>
-							<option value="less than equal to">Less Than Equal To</option>
-							<option value="greater than equal to">Greater Than Equal To</option>
-							<option value="between">Between</option>
-							<option value="and">And</option>
-							<option value="or">Or</option>
-							<option value="in">Not</option>
-							<option value="not in">Not In</option>
-						</select>
-					</td>
-					
-					<td>
-						<select v-model="condition2.data_type">
-							<option value="string">String</option>
-							<option value="date">Date</option>
-							<option value="numeric">Numeric</option>
-						</select>
-					</td>
-					
-					<td>
-						<input type="text"  placeholder="Manager" v-model="condition2.attr_value"  v-if="condition2.operator!='between'" >
-						<input type="text"  placeholder="Manager" v-model="condition2.starting_attr_value"  v-if="condition2.operator=='between'" >
-						<input type="text"  placeholder="Manager" v-model="condition2.ending_attr_value"  v-if="condition2.operator=='between'" >
-					</td>
-					
-					<td>
-						<input class="btn" type="button" @click="add_condition(2)" value="&oplus;">
-						<input class="btn" type="button" @click="remove_condition(j, 2)" value="Remove"  v-if="j!=0" >
-					</td>
-				
-					<td>
-						<input type="radio"  value="And" v-model="condition2.treat_rule_as" >AND
-						<input type="radio"  value="Or" v-model="condition2.treat_rule_as">OR		
-					</td>
-				</tr>
-			</table>
-			
-			
-		</div>
-		<h2> Custom DQ Rule: </h2>
-        <div class="row">
-            <form>
-                <textarea rows="7" cols="160" placeholder="If Salary > 5000 and Experience between 12 and 15 Then Designation = &quot Manager &quot"></textarea>
-                <input class="btn" type="submit" id="i5" align="right">
-                <button class="btn" @click="display_conditions(1)" >Show Input Conditions</button>
-                <button class="btn" @click="display_conditions(2)" >Show Data Validation Rules</button>
-                <button class="btn" @click="generate_json()" >Generate Json</button>
-		    </form>
-		</div>
+        	<div class="col-sm-12">
+        		<p>Do you want to heal the data file by permanently removing the infected data? </p>
+        		<input class="btn" type="submit"  value="Yes">
+                <input class="btn" type="submit"  value="No">
+            </div>
+     	</div>
 	</div>	
 </body>
 </html>
@@ -188,6 +120,8 @@
 				add_condition:function(x){
 					if(x==1)
 						vm.input_conditions.push({ attr_name:'' , operator:'', data_type:'' , attr_value:'', treat_rule_as:'' ,  starting_attr_value:'' , ending_attr_value:''} );
+					else if(x==2)
+						vm.validation_data.push({ attr_name:'' , operator:'', data_type:'' , attr_value:'', treat_rule_as:'' ,  starting_attr_value:'' , ending_attr_value:''} );
 				
 				},
 				

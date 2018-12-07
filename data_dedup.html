@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<title>Data Quality Validation</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" type="text/css" href="bootstrap.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+</head>
+<body>
+	<div  id="vue-app" class="container">
+		<h1>Data Deduplication Rule</h1> 
+        <div class="row">
+            <div class="col-sm-4">
+                <input class="form-control" type="text" placeholder=" File Name / S3 URL"  >
+                <p>Reference File Name</p>
+            </div>
+            <div class="col-sm-4">
+                <input type="file"  name="csvfile" accept=".csv" value="Upload File" id="fileupload">
+            </div>
+            <div class="col-sm-4">
+                <button class="btn" onclick="">Select from s3</button>
+            </div>	
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <input class="form-control" type="text" placeholder=" File Name / S3 URL"  >
+                <p>Input File Name</p>
+            </div>
+            <div class="col-sm-4">
+                <input type="file"  name="csvfile" accept=".csv" value="Upload File" id="fileupload">
+            </div>
+            <div class="col-sm-4">
+                <button class="btn" onclick="">Select from s3</button>
+            </div>	
+        </div>	
+		<div class="row">
+			<div class="col-sm-12">
+				<h2> Field Mapping </h2>
+				<p> Map the fields from Reference and Input file here: </p>
+			</div>
+			<div class="col-sm-6">
+				<input class="form-control" type="text" placeholder="Default is total weightage"  >
+                <p>Set Passing Threshold</p>
+			</div>
+		</div>
+        <div class="row">
+            <table Id="t1" class = "table table-bordered table-hover">	
+				<tr>
+					<th >Reference Field</th>
+					<th>Input Field</th>
+					<th>Weightage</th>
+                 </tr>
+				
+				<tr  v-for="condition,i in field_mapping"  >			
+					<td>
+						<input type="text"  placeholder="Last Name"  >
+					</td>
+					
+					<td>
+						<input type="text"  placeholder="L Name"  >
+					</td>
+					
+					<td>
+						<input type="text"  placeholder="1"  >
+					</td>
+					
+					<td>
+						<input class="btn" type="button" @click="add_condition(1)" value="&oplus;">
+						<input class="btn" type="button" @click="remove_condition(i, 1)" value="Remove"  v-if="i!=0" >
+					</td>
+					
+						
+				</tr>
+			</table>	
+		</div>
+			
+	</div>	
+</body>
+</html>
+
+<script>	
+		var vm=new Vue({
+			el:'#vue-app',
+			data:{
+				filename:'',
+				csv_headers:['id','name','score','rank'],
+				
+				field_mapping:[ { ref_field:'' , input_field:'', weightage:''}  ]
+				
+				
+				
+			},
+			methods:{
+				add_condition:function(x){
+					if(x==1)
+						vm.field_mapping.push({ref_field:'' , input_field:'', weightage:''} );
+					
+				
+				},
+				
+				display_conditions:function(x){
+					if(x==1) {
+						console.log(JSON.stringify(vm.field_mapping));
+						alert(JSON.stringify(vm.field_mapping));
+					}
+					
+				},
+				
+				generate_json:function(){
+					var obj ={ 
+								"input_file":"",
+								"Mapping":[]
+							}				
+					obj.input_file="abc";
+					for (var i = 0; i < vm.field_mapping.length; i++) {
+						var rule_attr ={
+							"field_name":"",
+							"field_type":"",
+							"condition":{
+								"condition_type":"",
+								"upper_val":"",
+								"lower_val":""
+							},
+							"treat_next_rule_as":"null/and/or"
+						}
+						rule_attr.field_name = vm.field_mapping[i].attr_name;
+						rule_attr.field_type = vm.field_mapping[i].data_type;
+						rule_attr.condition.condition_type = vm.field_mapping[i].operator;
+						if(vm.field_mapping[i].operator == "between"){
+							rule_attr.condition.upper_val = vm.field_mapping[i].ending_attr_value;
+							rule_attr.condition.lower_val = vm.field_mapping[i].starting_attr_value;
+						}
+						else{
+							rule_attr.condition.upper_val = vm.field_mapping[i].attr_value;
+							rule_attr.condition.lower_val = vm.field_mapping[i].attr_value;
+						}
+						rule_attr.treat_next_rule_as = vm.field_mapping[i].treat_rule_as;
+						obj.Rule_Attributes.push(rule_attr);
+					}
+					
+					console.log(JSON.stringify(obj));
+					alert(JSON.stringify(obj));
+					
+				},
+				
+				remove_condition:function(index, x){
+					if(x==1) {
+						console.log("index=",index);
+						vm.field_mapping.splice(index,1);
+					}
+				}
+			},
+				
+				
+			watch:{
+			
+			
+			}
+		
+		
+		});
+		
+		
+		
+		function uploadFileToS3(){
+			
+		  //var files = evt.target.files; // FileList object
+		  var files=$('#fileupload').prop('files');
+		  console.log('files',files[0]);
+
+		  // Loop through the FileList and render image files as thumbnails.
+		  for (var i = 0, f; f = files[i]; i++) {
+
+				  
+			var reader = new FileReader();
+
+			// Closure to capture the file information.
+			reader.onload = (function(theFile) {
+			  return function(e) {
+		   
+			console.log(theFile);
+			
+			var filename=vm.filename;
+				
+			//"bucketname":"data-quality-storage",
+			var input_request={
+					"bucketname":"dq-source-bucket",	
+					"filename":filename
+	
+			
+			};		
+						
+			   $.ajax({
+					  type: "POST",
+					  url: 'https://bksskcyeob.execute-api.us-east-1.amazonaws.com/prod/get-file-upload-url ',
+					  data: JSON.stringify( input_request ),
+					  dataType: 'json',
+					  contentType: 'application/json',
+					  success: function (result) {
+						console.log(result);
+
+						
+						  var filename = result.filename;
+						  var xhr=new XMLHttpRequest();
+						  xhr.onload=function(e) {
+							  if(this.readyState === 4) {
+								  console.log("Server returned: ",e.target.responseText);
+								  
+							  }
+							  
+							  console.log("File uploaded successfully");
+							 
+							 				
+						  };
+
+						 
+						  
+						  xhr.open("PUT",result.upload_url,true);
+						  const blob = new Blob([theFile])
+						  console.log(blob);
+						  var file=new File([blob], filename);
+						  console.log('file=',file);
+						  
+						
+						  
+						  xhr.send(file);
+						  
+						
+
+					  },
+
+					  error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log(textStatus);
+						
+						
+					  }
+
+				 });
+
+				
+
+			};
+			})(f);
+
+			// Read in the image file as a data URL.
+			reader.readAsDataURL(f);
+		  }
+
+
+
+		}
+
+
+	
+	
+		function addRow(tableID) {
+			var table = document.getElementById(tableID);		// table=$('#id');
+			//var rowCount = table.rows.length;
+			var row = table.insertRow(-1);
+			var colCount = table.rows[1].cells.length;
+			for(var i=0; i<colCount; i++) {
+				var newcell	= row.insertCell(i);
+				newcell.innerHTML = table.rows[1].cells[i].innerHTML;
+				//alert(newcell.childNodes);
+				switch(newcell.childNodes[0].type) {
+					case "text":
+							newcell.childNodes[0].value = "";
+							break;
+					case "checkbox":
+							newcell.childNodes[0].checked = false;
+							break;
+					case "select-one":
+							newcell.childNodes[0].selectedIndex = 0;
+							break;
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+	</script>
+	
+	
+	
