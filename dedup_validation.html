@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<title>Data Quality Validation</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" type="text/css" href="bootstrap.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+</head>
+<body>
+	<div  id="vue-app" class="container">
+		<h1>Data Validation with Data Duplication Rule</h1> 
+        <div class="row">
+            <div class="col-sm-12">
+                <p>Deduplication Rule has been applied to provided data file and following are duplicated based on Key and weightage provided. Please verify and confirm:</p>
+            </div>
+           
+        </div>	
+		
+        <div class="row">
+            <table Id="t1" class = "table table-bordered table-hover">	
+				<tr>
+					<th >Row No.</th>
+					<th>Ref - Email</th>
+					<th>Input Email ID</th>
+                    <th>Golden Image ID</th>
+                    <th>Remove Duplicate Entry</th>
+				</tr>
+				
+				<tr  v-for="condition,i in input_conditions"  >			
+					<td>
+							{{i+1}}			  
+					</td>
+					
+					<td>
+						<select v-model="condition.operator">
+							<option value="regex match">REGEX Match</option>
+							<option value="equal to">Equal To</option>
+						
+						</select>
+					</td>
+					
+					<td>
+					a
+					</td>
+					<td>
+						<select v-model="condition.data_type" >
+							<option value="string">String</option>
+							<option value="date">Date</option>
+							<option value="numeric">Numeric</option>
+						</select>
+					</td>
+					
+					
+					<td>
+						<input type="checkbox" v-model="condition.checked" >
+					</td>	
+					
+				</tr>
+			</table>	
+		</div>
+		
+        <div class="row">
+        	<div class="col-sm-12">
+        		<p>Do you want to de-duplicate the data file by permanently removing the duplicate entries?  </p>
+        		<input class="btn" type="submit"  value="Yes">
+                <input class="btn" type="submit"  value="No">
+            </div>
+     	</div>
+     	<div class="row">
+     		<div class="col-sm-12">
+     			<p>Download Reference and Input file updated with Golden Image ID</p>
+     			<button class="btn" onclick="">Download</button> 
+     		</div>
+     	</div>
+	</div>	
+</body>
+</html>
+
+<script>	
+		var vm=new Vue({
+			el:'#vue-app',
+			data:{
+				filename:'',
+				csv_headers:['id','name','score','rank'],
+				
+				input_conditions:[ { attr_name:'' , operator:'', data_type:'' , attr_value:'', treat_rule_as:''  , starting_attr_value:'' , ending_attr_value:'' }  ],
+				
+				
+				
+			},
+			methods:{
+				add_condition:function(x){
+					if(x==1)
+						vm.input_conditions.push({ attr_name:'' , operator:'', data_type:'' , attr_value:'', treat_rule_as:'' ,  starting_attr_value:'' , ending_attr_value:''} );
+				
+				
+				},
+				
+				display_conditions:function(x){
+					if(x==1) {
+						console.log(JSON.stringify(vm.input_conditions));
+						alert(JSON.stringify(vm.input_conditions));
+					}
+				},
+				
+				generate_json:function(){
+					var obj ={ 
+								"input_file":"",
+								"Rule_Attributes":[],
+								"Expected_Data":[]
+							}				
+					obj.input_file="abc";
+					for (var i = 0; i < vm.input_conditions.length; i++) {
+						var rule_attr ={
+							"field_name":"",
+							"field_type":"",
+							"condition":{
+								"condition_type":"",
+								"upper_val":"",
+								"lower_val":""
+							},
+							"treat_next_rule_as":"null/and/or"
+						}
+						rule_attr.field_name = vm.input_conditions[i].attr_name;
+						rule_attr.field_type = vm.input_conditions[i].data_type;
+						rule_attr.condition.condition_type = vm.input_conditions[i].operator;
+						if(vm.input_conditions[i].operator == "between"){
+							rule_attr.condition.upper_val = vm.input_conditions[i].ending_attr_value;
+							rule_attr.condition.lower_val = vm.input_conditions[i].starting_attr_value;
+						}
+						else{
+							rule_attr.condition.upper_val = vm.input_conditions[i].attr_value;
+							rule_attr.condition.lower_val = vm.input_conditions[i].attr_value;
+						}
+						rule_attr.treat_next_rule_as = vm.input_conditions[i].treat_rule_as;
+						obj.Rule_Attributes.push(rule_attr);
+					}
+				
+						
+					console.log(JSON.stringify(obj));
+					alert(JSON.stringify(obj));
+					
+				},
+				
+				remove_condition:function(index, x){
+					if(x==1) {
+						console.log("index=",index);
+						vm.input_conditions.splice(index,1);
+					}
+					
+				}
+			},
+				
+				
+			watch:{
+			
+			
+			}
+		
+		
+		});
+		
+		
+		
+		function uploadFileToS3(){
+			
+		  //var files = evt.target.files; // FileList object
+		  var files=$('#fileupload').prop('files');
+		  console.log('files',files[0]);
+
+		  // Loop through the FileList and render image files as thumbnails.
+		  for (var i = 0, f; f = files[i]; i++) {
+
+				  
+			var reader = new FileReader();
+
+			// Closure to capture the file information.
+			reader.onload = (function(theFile) {
+			  return function(e) {
+		   
+			console.log(theFile);
+			
+			var filename=vm.filename;
+				
+			//"bucketname":"data-quality-storage",
+			var input_request={
+					"bucketname":"dq-source-bucket",	
+					"filename":filename
+	
+			
+			};		
+						
+			   $.ajax({
+					  type: "POST",
+					  url: 'https://bksskcyeob.execute-api.us-east-1.amazonaws.com/prod/get-file-upload-url ',
+					  data: JSON.stringify( input_request ),
+					  dataType: 'json',
+					  contentType: 'application/json',
+					  success: function (result) {
+						console.log(result);
+
+						
+						  var filename = result.filename;
+						  var xhr=new XMLHttpRequest();
+						  xhr.onload=function(e) {
+							  if(this.readyState === 4) {
+								  console.log("Server returned: ",e.target.responseText);
+								  
+							  }
+							  
+							  console.log("File uploaded successfully");
+							 
+							 				
+						  };
+
+						 
+						  
+						  xhr.open("PUT",result.upload_url,true);
+						  const blob = new Blob([theFile])
+						  console.log(blob);
+						  var file=new File([blob], filename);
+						  console.log('file=',file);
+						  
+						
+						  
+						  xhr.send(file);
+						  
+						
+
+					  },
+
+					  error: function(XMLHttpRequest, textStatus, errorThrown) {
+						console.log(textStatus);
+						
+						
+					  }
+
+				 });
+
+				
+
+			};
+			})(f);
+
+			// Read in the image file as a data URL.
+			reader.readAsDataURL(f);
+		  }
+
+
+
+		}
+
+
+	
+	
+		function addRow(tableID) {
+			var table = document.getElementById(tableID);		// table=$('#id');
+			//var rowCount = table.rows.length;
+			var row = table.insertRow(-1);
+			var colCount = table.rows[1].cells.length;
+			for(var i=0; i<colCount; i++) {
+				var newcell	= row.insertCell(i);
+				newcell.innerHTML = table.rows[1].cells[i].innerHTML;
+				//alert(newcell.childNodes);
+				switch(newcell.childNodes[0].type) {
+					case "text":
+							newcell.childNodes[0].value = "";
+							break;
+					case "checkbox":
+							newcell.childNodes[0].checked = false;
+							break;
+					case "select-one":
+							newcell.childNodes[0].selectedIndex = 0;
+							break;
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+	</script>
+	
+	
+	
