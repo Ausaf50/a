@@ -15,26 +15,26 @@
 	<div  id="vue-app" class="container">
 		<h1>Data Deduplication Rule</h1> 
         <div class="row">
-            <div class="col-sm-4">
-                <input class="form-control" type="text" placeholder=" File Name / S3 URL"  >
+            <div class="col-sm-6">
+                <input class="form-control" type="text" placeholder=" File Name / S3 URL" v-model="filename1" >
                 <p>Reference File Name</p>
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <input type="file"  name="csvfile" accept=".csv" value="Upload File" id="fileupload">
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <button class="btn" onclick="">Select from s3</button>
             </div>	
         </div>
         <div class="row">
-            <div class="col-sm-4">
-                <input class="form-control" type="text" placeholder=" File Name / S3 URL"  >
+            <div class="col-sm-6">
+                <input class="form-control" type="text" placeholder=" File Name / S3 URL"  v-model="filename2">
                 <p>Input File Name</p>
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <input type="file"  name="csvfile" accept=".csv" value="Upload File" id="fileupload">
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <button class="btn" onclick="">Select from s3</button>
             </div>	
         </div>	
@@ -44,8 +44,9 @@
 				<p> Map the fields from Reference and Input file here: </p>
 			</div>
 			<div class="col-sm-6">
-				<input class="form-control" type="text" placeholder="Default is total weightage"  >
-                <p>Set Passing Threshold</p>
+				<p>Set Passing Threshold</p>
+				<input class="form-control" type="text" placeholder="Default is total weightage" v-model="threshold" >
+                
 			</div>
 		</div>
         <div class="row">
@@ -56,17 +57,17 @@
 					<th>Weightage</th>
                  </tr>
 				
-				<tr  v-for="condition,i in field_mapping"  >			
+				<tr  v-for="mapping,i in field_mapping"  >			
 					<td>
-						<input type="text"  placeholder="Last Name"  >
+						<input type="text"  placeholder="Last Name" v-model="mapping.ref_field" >
 					</td>
 					
 					<td>
-						<input type="text"  placeholder="L Name"  >
+						<input type="text"  placeholder="L Name" v-model="mapping.inp_field" >
 					</td>
 					
 					<td>
-						<input type="text"  placeholder="1"  >
+						<input type="text"  placeholder="1"  v-model="mapping.weight">
 					</td>
 					
 					<td>
@@ -78,6 +79,12 @@
 				</tr>
 			</table>	
 		</div>
+		<div class="row">
+            <form>
+                <input class="btn" type="submit" id="i5" align="right">
+                <button class="btn" @click="generate_json()" >Generate Json</button>
+		    </form>
+		</div>
 			
 	</div>	
 </body>
@@ -87,10 +94,12 @@
 		var vm=new Vue({
 			el:'#vue-app',
 			data:{
-				filename:'',
+				ref_filename:'',
+				inp_filename:'',
+				threshold:"",
 				csv_headers:['id','name','score','rank'],
 				
-				field_mapping:[ { ref_field:'' , input_field:'', weightage:''}  ]
+				field_mapping:[ { ref_field:'' , inp_field:'', weight:''}  ]
 				
 				
 				
@@ -98,49 +107,32 @@
 			methods:{
 				add_condition:function(x){
 					if(x==1)
-						vm.field_mapping.push({ref_field:'' , input_field:'', weightage:''} );
+						vm.field_mapping.push({ref_field:'' , inp_field:'', weight:''} );
 					
 				
-				},
-				
-				display_conditions:function(x){
-					if(x==1) {
-						console.log(JSON.stringify(vm.field_mapping));
-						alert(JSON.stringify(vm.field_mapping));
-					}
-					
 				},
 				
 				generate_json:function(){
 					var obj ={ 
+								"reference_file":"",
 								"input_file":"",
+								"threshold":"",
 								"Mapping":[]
-							}				
-					obj.input_file="abc";
+							}
+					obj.reference_file=vm.filename1;
+					obj.input_file=vm.filename2;
+					obj.threshold=vm.threshold;
 					for (var i = 0; i < vm.field_mapping.length; i++) {
-						var rule_attr ={
-							"field_name":"",
-							"field_type":"",
-							"condition":{
-								"condition_type":"",
-								"upper_val":"",
-								"lower_val":""
-							},
-							"treat_next_rule_as":"null/and/or"
+						var attr ={
+							"r_field":"",
+							"i_field":"",
+							"weight":""
 						}
-						rule_attr.field_name = vm.field_mapping[i].attr_name;
-						rule_attr.field_type = vm.field_mapping[i].data_type;
-						rule_attr.condition.condition_type = vm.field_mapping[i].operator;
-						if(vm.field_mapping[i].operator == "between"){
-							rule_attr.condition.upper_val = vm.field_mapping[i].ending_attr_value;
-							rule_attr.condition.lower_val = vm.field_mapping[i].starting_attr_value;
-						}
-						else{
-							rule_attr.condition.upper_val = vm.field_mapping[i].attr_value;
-							rule_attr.condition.lower_val = vm.field_mapping[i].attr_value;
-						}
-						rule_attr.treat_next_rule_as = vm.field_mapping[i].treat_rule_as;
-						obj.Rule_Attributes.push(rule_attr);
+						attr.r_field = vm.field_mapping[i].ref_field;
+						attr.i_field = vm.field_mapping[i].inp_field;
+						attr.weight = vm.field_mapping[i].weight;
+						
+						obj.Mapping.push(attr);
 					}
 					
 					console.log(JSON.stringify(obj));
